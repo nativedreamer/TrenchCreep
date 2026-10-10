@@ -1,5 +1,5 @@
-import { CheckResult, EvidenceItem, SameSlotBuyGroup, TokenInfo } from '../types';
-import { heliusSource } from '../sources/helius';
+import { CheckResult, EvidenceItem, SameSlotBuyGroup, TokenInfo } from '../types.js';
+import { heliusSource } from '../sources/helius.js';
 
 export interface SameSlotOptions {
   timeoutMs?: number;

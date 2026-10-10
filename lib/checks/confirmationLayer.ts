@@ -1,7 +1,7 @@
-import { CheckResult, EvidenceItem, TokenInfo } from '../types';
-import { dexScreenerSource } from '../sources/dexscreener';
-import { rugCheckSource } from '../sources/rugcheck';
-import { gmgnSource } from '../sources/gmgn';
+import { CheckResult, EvidenceItem, TokenInfo } from '../types.js';
+import { dexScreenerSource } from '../sources/dexscreener.js';
+import { rugCheckSource } from '../sources/rugcheck.js';
+import { gmgnSource } from '../sources/gmgn.js';
 
 export interface ConfirmationLayerOptions {
   timeoutMs?: number;

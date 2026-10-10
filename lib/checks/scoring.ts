@@ -1,8 +1,8 @@
-import { CheckResult, RiskVerdict, ScoredToken, TokenInfo } from '../types';
-import { executeFundingTraceCheck } from './fundingTrace';
-import { executeDeployerCheck } from './deployerCheck';
-import { executeSameSlotBuysCheck } from './sameSlotBuys';
-import { executeConfirmationLayerCheck } from './confirmationLayer';
+import { CheckResult, RiskVerdict, ScoredToken, TokenInfo } from '../types.js';
+import { executeFundingTraceCheck } from './fundingTrace.js';
+import { executeDeployerCheck } from './deployerCheck.js';
+import { executeSameSlotBuysCheck } from './sameSlotBuys.js';
+import { executeConfirmationLayerCheck } from './confirmationLayer.js';
 
 export const SCORING_WEIGHTS = {
   holderTrace: 0.35,

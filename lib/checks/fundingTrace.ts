@@ -1,5 +1,5 @@
-import { CheckResult, EvidenceItem, HolderCluster, TokenInfo } from '../types';
-import { heliusSource, TokenHolder, WalletFundingSource } from '../sources/helius';
+import { CheckResult, EvidenceItem, HolderCluster, TokenInfo } from '../types.js';
+import { heliusSource, TokenHolder, WalletFundingSource } from '../sources/helius.js';
 
 export interface FundingTraceOptions {
   timeoutMs?: number;

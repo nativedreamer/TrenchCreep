@@ -1,5 +1,5 @@
-import { TokenInfo } from '../types';
-import { TokenSourceAdapter } from './types';
+import { TokenInfo } from '../types.js';
+import { TokenSourceAdapter } from './types.js';
 
 export class DexScreenerSourceAdapter implements TokenSourceAdapter {
   name = 'dexscreener';

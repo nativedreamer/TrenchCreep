@@ -1,6 +1,6 @@
-import { CheckResult, EvidenceItem, TokenInfo } from '../types';
-import { rugCheckSource, RugCheckReport } from '../sources/rugcheck';
-import { heliusSource } from '../sources/helius';
+import { CheckResult, EvidenceItem, TokenInfo } from '../types.js';
+import { rugCheckSource, RugCheckReport } from '../sources/rugcheck.js';
+import { heliusSource } from '../sources/helius.js';
 
 export interface DeployerCheckOptions {
   timeoutMs?: number;

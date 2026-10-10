@@ -1,8 +1,8 @@
-import { pumpFunSource } from '../lib/sources/pumpfun';
-import { dexScreenerSource } from '../lib/sources/dexscreener';
-import { auditAndScoreToken } from '../lib/checks/scoring';
-import { kv } from '../lib/kv';
-import { ScoredToken, TokenInfo } from '../lib/types';
+import { pumpFunSource } from '../lib/sources/pumpfun.js';
+import { dexScreenerSource } from '../lib/sources/dexscreener.js';
+import { auditAndScoreToken } from '../lib/checks/scoring.js';
+import { kv } from '../lib/kv.js';
+import { ScoredToken, TokenInfo } from '../lib/types.js';
 
 export const config = {
   maxDuration: 30,

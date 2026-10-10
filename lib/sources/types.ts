@@ -1,4 +1,4 @@
-import { TokenInfo } from '../types';
+import { TokenInfo } from '../types.js';
 
 export interface TokenSourceAdapter {
   name: string;
