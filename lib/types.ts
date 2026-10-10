@@ -68,6 +68,32 @@ export interface TokenInfo {
   telegram?: string;
   twitter?: string;
   website?: string;
+  volume5mUsd?: number;
+  volume1hUsd?: number;
+  txns5m?: { buys: number; sells: number };
+  txns1h?: { buys: number; sells: number };
+  bondingCurveProgress?: number; // 0 - 100%
+  mintAuthorityRevoked?: boolean;
+  freezeAuthorityRevoked?: boolean;
+  liquidityBurnedPct?: number; // 0 - 100%
+  top10HoldersPct?: number; // 0 - 100%
+  devHoldingPct?: number; // 0 - 100%
+  devHistory?: {
+    totalCreated: number;
+    ruggedCount: number;
+    soldEarly: boolean;
+  };
+}
+
+export interface PaperPosition {
+  id: string;
+  mint: string;
+  symbol: string;
+  name: string;
+  entryPriceUsd: number;
+  amountTokens: number;
+  solInvested: number;
+  entryTimestamp: number;
 }
 
 export interface ScoredToken {
