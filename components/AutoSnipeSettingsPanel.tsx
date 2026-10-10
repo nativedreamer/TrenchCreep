@@ -22,9 +22,14 @@ export default function AutoSnipeSettingsPanel({ settings, wallet, onUpdate, onC
             <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-slate-400">Proposal-only control plane. It detects qualified tokens and prepares unsigned transaction plans for an external signer; it never stores keys or submits transactions.</p>
           </div>
         </div>
-        <button type="button" onClick={() => onUpdate('enabled', !settings.enabled)} className={`rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${settings.enabled ? 'border-amber-400/50 bg-amber-400/15 text-amber-300' : 'border-slate-700 bg-slate-900 text-slate-400'}`}>
-          {settings.enabled ? 'ENGINE ARMED FOR PROPOSALS' : 'ENGINE OFF'}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={() => onUpdate('paperTradingEnabled', !settings.paperTradingEnabled)} className={`rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${settings.paperTradingEnabled ? 'border-emerald-400/50 bg-emerald-400/15 text-emerald-300' : 'border-slate-700 bg-slate-900 text-slate-400'}`}>
+            {settings.paperTradingEnabled ? 'PAPER TRADING ON' : 'PAPER TRADING OFF'}
+          </button>
+          <button type="button" onClick={() => onUpdate('enabled', !settings.enabled)} className={`rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${settings.enabled ? 'border-amber-400/50 bg-amber-400/15 text-amber-300' : 'border-slate-700 bg-slate-900 text-slate-400'}`}>
+            {settings.enabled ? 'ENGINE ARMED FOR PROPOSALS' : 'ENGINE OFF'}
+          </button>
+        </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">

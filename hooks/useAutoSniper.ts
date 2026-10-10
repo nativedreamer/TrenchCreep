@@ -11,6 +11,7 @@ import {
 
 const DEFAULT_SETTINGS: AutoSniperSettings = {
   enabled: false,
+  paperTradingEnabled: false,
   maxBuySol: 0.05,
   takeProfitMultiplier: 1.5,
   secondTakeProfitMultiplier: 2,
@@ -38,6 +39,8 @@ export function useAutoSniper(tokens: ScoredToken[]) {
   const [positions, setPositions] = useState<ControlPlanePosition[]>([]);
   const [proposals, setProposals] = useState<ProposedTransaction[]>([]);
   const [dailyLossSol, setDailyLossSol] = useState(0);
+  const [paperBalanceSol, setPaperBalanceSol] = useState(1);
+  const [paperStartedAt, setPaperStartedAt] = useState<number | null>(null);
 
   const momentumQualified = useMemo(() => tokens.filter((item) => {
     const { token, totalRiskScore, checks, momentumStrategy } = item;
@@ -86,8 +89,26 @@ export function useAutoSniper(tokens: ScoredToken[]) {
       reason: `Qualified: score ${token.totalRiskScore}, baseline pass, momentum pass, max slippage ${settings.maxSlippagePct}%.`,
     };
     setProposals((current) => [proposal, ...current].slice(0, 25));
+    if (settings.paperTradingEnabled) {
+      const entryPriceUsd = token.token.priceUsd || 0;
+      setPositions((current) => {
+        if (current.some((position) => position.token.token.mint === token.token.mint && position.status !== 'closed')) return current;
+        if (paperBalanceSol < settings.maxBuySol || current.filter((position) => position.status !== 'closed').length >= settings.maxPositions) return current;
+        if (!paperStartedAt) setPaperStartedAt(Date.now());
+        setPaperBalanceSol((balance) => Math.max(0, balance - settings.maxBuySol));
+        return [{
+          id: `paper-${token.token.mint}-${Date.now()}`,
+          token,
+          entryPriceUsd,
+          currentPriceUsd: entryPriceUsd,
+          solInvested: settings.maxBuySol,
+          openedAt: Date.now(),
+          status: 'open',
+        }, ...current];
+      });
+    }
     return proposal;
-  }, [settings.maxBuySol, settings.maxSlippagePct]);
+  }, [paperBalanceSol, paperStartedAt, settings.maxBuySol, settings.maxPositions, settings.maxSlippagePct, settings.paperTradingEnabled]);
 
   const proposeExit = useCallback((position: ControlPlanePosition, reason: string) => {
     const proposal: ProposedTransaction = {
@@ -101,9 +122,17 @@ export function useAutoSniper(tokens: ScoredToken[]) {
       reason,
     };
     setProposals((current) => [proposal, ...current].slice(0, 25));
-    setPositions((current) => current.map((item) => item.id === position.id ? { ...item, status: 'proposed_exit' } : item));
+    if (settings.paperTradingEnabled) {
+      const multiple = position.entryPriceUsd > 0 ? position.currentPriceUsd / position.entryPriceUsd : 1;
+      const pnlSol = position.solInvested * (multiple - 1);
+      setPaperBalanceSol((balance) => balance + position.solInvested + pnlSol);
+      if (pnlSol < 0) setDailyLossSol((loss) => loss + Math.abs(pnlSol));
+      setPositions((current) => current.map((item) => item.id === position.id ? { ...item, status: 'closed' } : item));
+    } else {
+      setPositions((current) => current.map((item) => item.id === position.id ? { ...item, status: 'proposed_exit' } : item));
+    }
     return proposal;
-  }, []);
+  }, [settings.paperTradingEnabled]);
 
   const panicSellAll = useCallback(() => {
     setSettings((current) => ({ ...current, enabled: false }));
@@ -123,6 +152,16 @@ export function useAutoSniper(tokens: ScoredToken[]) {
       if (!openMints.has(token.token.mint) && !existingProposals.has(token.token.mint)) proposeBuy(token);
     });
   }, [momentumQualified, settings.enabled, settings.maxPositions, sessionWallet.connected, positions, proposals, proposeBuy]);
+
+  // Mark paper positions against the newest read-only screener prices.
+  useEffect(() => {
+    if (!settings.paperTradingEnabled) return;
+    const prices = new Map(tokens.map((token) => [token.token.mint, token.token.priceUsd]));
+    setPositions((current) => current.map((position) => {
+      const price = prices.get(position.token.token.mint);
+      return price && price > 0 ? { ...position, currentPriceUsd: price } : position;
+    }));
+  }, [settings.paperTradingEnabled, tokens]);
 
   // Read-only price monitor for local UI state. It calculates trigger proposals but does not submit swaps.
   useEffect(() => {
@@ -145,7 +184,7 @@ export function useAutoSniper(tokens: ScoredToken[]) {
     return () => clearInterval(interval);
   }, [positions, settings.takeProfitMultiplier, settings.secondTakeProfitMultiplier, settings.stopLossPct, proposeExit]);
 
-  const snapshot: AutoSniperSnapshot = { settings, sessionWallet, positions, proposals, momentumQualified, dailyLossSol };
+  const snapshot: AutoSniperSnapshot = { settings, sessionWallet, positions, proposals, momentumQualified, dailyLossSol, paperBalanceSol, paperStartedAt };
   return {
     ...snapshot,
     updateSettings,
@@ -155,5 +194,16 @@ export function useAutoSniper(tokens: ScoredToken[]) {
     proposeExit,
     panicSellAll,
     setDailyLossSol,
+    setPaperTradingEnabled: (enabled: boolean) => {
+      setSettings((current) => ({ ...current, paperTradingEnabled: enabled }));
+      if (enabled && !paperStartedAt) setPaperStartedAt(Date.now());
+    },
+    resetPaperAccount: () => {
+      setPaperBalanceSol(1);
+      setDailyLossSol(0);
+      setPaperStartedAt(Date.now());
+      setPositions([]);
+      setProposals([]);
+    },
   };
 }

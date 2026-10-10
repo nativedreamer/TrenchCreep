@@ -4,6 +4,7 @@ export type PriorityFeeStrategy = 'low' | 'medium' | 'aggressive';
 
 export interface AutoSniperSettings {
   enabled: boolean;
+  paperTradingEnabled: boolean;
   maxBuySol: number;
   takeProfitMultiplier: number;
   secondTakeProfitMultiplier: number;
@@ -48,6 +49,8 @@ export interface ControlPlanePosition {
 
 export interface AutoSniperSnapshot {
   settings: AutoSniperSettings;
+  paperBalanceSol: number;
+  paperStartedAt: number | null;
   sessionWallet: SessionWalletStatus;
   positions: ControlPlanePosition[];
   proposals: ProposedTransaction[];

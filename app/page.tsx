@@ -545,6 +545,8 @@ export default function DashboardPage() {
         proposals={autoSniper.proposals}
         dailyLossSol={autoSniper.dailyLossSol}
         maxDailyLossSol={autoSniper.settings.maxDailyLossSol}
+        paperBalanceSol={autoSniper.paperBalanceSol}
+        paperTradingEnabled={autoSniper.settings.paperTradingEnabled}
         onProposeBuy={handleProposeBuy}
         onPanic={() => {
           autoSniper.panicSellAll();
