@@ -33,22 +33,39 @@ export class DexScreenerSourceAdapter implements TokenSourceAdapter {
       const results: TokenInfo[] = [];
 
       for (const profile of solanaTokens) {
-        results.push({
-          mint: profile.tokenAddress,
-          name: profile.name || 'Solana Token',
-          symbol: profile.symbol || 'SOL',
-          description: profile.description || '',
-          image: profile.icon || '',
-          deployer: '',
-          createdTimestamp: Date.now() - 600_000,
-          initialSupply: 1_000_000_000,
-          source: 'dexscreener',
-          trending: false,
-          isMigrated: true,
-          website: profile.links?.find((l: any) => l.type === 'website')?.url,
-          twitter: profile.links?.find((l: any) => l.type === 'twitter')?.url,
-          telegram: profile.links?.find((l: any) => l.type === 'telegram')?.url,
-        });
+        // The latest-profiles endpoint often contains only the mint and
+        // promotion metadata. Hydrate the pair so the dashboard receives the
+        // actual base-token name and ticker instead of a misleading $SOL.
+        const hydrated = await this.getTokenByMint(profile.tokenAddress);
+        if (hydrated) {
+          hydrated.description = profile.description || hydrated.description;
+          hydrated.image = profile.icon || hydrated.image;
+          hydrated.website = profile.links?.find((l: any) => l.type === 'website')?.url;
+          hydrated.twitter = profile.links?.find((l: any) => l.type === 'twitter')?.url;
+          hydrated.telegram = profile.links?.find((l: any) => l.type === 'telegram')?.url;
+          results.push(hydrated);
+          continue;
+        }
+        // Only use profile metadata when it includes a real identity. Never
+        // invent SOL as the ticker for an unrelated token.
+        if (profile.name && profile.symbol) {
+          results.push({
+            mint: profile.tokenAddress,
+            name: profile.name,
+            symbol: profile.symbol,
+            description: profile.description || '',
+            image: profile.icon || '',
+            deployer: '',
+            createdTimestamp: Date.now() - 600_000,
+            initialSupply: 1_000_000_000,
+            source: 'dexscreener',
+            trending: false,
+            isMigrated: true,
+            website: profile.links?.find((l: any) => l.type === 'website')?.url,
+            twitter: profile.links?.find((l: any) => l.type === 'twitter')?.url,
+            telegram: profile.links?.find((l: any) => l.type === 'telegram')?.url,
+          });
+        }
       }
 
       return results;
@@ -85,12 +102,17 @@ export class DexScreenerSourceAdapter implements TokenSourceAdapter {
       if (!data?.pairs || !data.pairs.length) return null;
 
       const primaryPair = data.pairs[0];
+      const tokenIdentity = primaryPair.baseToken?.address?.toLowerCase() === mint.toLowerCase()
+        ? primaryPair.baseToken
+        : primaryPair.quoteToken?.address?.toLowerCase() === mint.toLowerCase()
+          ? primaryPair.quoteToken
+          : primaryPair.baseToken;
       const createdTs = primaryPair.pairCreatedAt ? Number(primaryPair.pairCreatedAt) : Date.now();
 
       return {
         mint,
-        name: primaryPair.baseToken?.name || 'Unknown',
-        symbol: primaryPair.baseToken?.symbol || 'MEME',
+        name: tokenIdentity?.name || 'Unknown',
+        symbol: tokenIdentity?.symbol || 'MEME',
         deployer: '',
         createdTimestamp: createdTs,
         initialSupply: 1_000_000_000,

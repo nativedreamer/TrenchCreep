@@ -47,8 +47,8 @@ export default async function handler(req: any, res: any) {
       if (!tokenInfo) {
         tokenInfo = {
           mint: q,
-          name: 'Solana Token',
-          symbol: 'SOL',
+          name: 'Unknown Solana Token',
+          symbol: 'UNKNOWN',
           deployer: '',
           createdTimestamp: Date.now(),
           initialSupply: 1_000_000_000,
