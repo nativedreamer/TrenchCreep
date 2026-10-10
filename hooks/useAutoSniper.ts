@@ -164,9 +164,10 @@ export function useAutoSniper(tokens: ScoredToken[]) {
     });
   }, [positions, proposeExit]);
 
-  // Control-plane event loop: propose buys for newly qualified tokens only; never submits them.
+  // Control-plane event loop: paper mode can auto-fill locally without a
+  // wallet session; non-paper proposals still require a public wallet session.
   useEffect(() => {
-    if (!settings.enabled || !sessionWallet.connected) return;
+    if (!settings.enabled || (!settings.paperTradingEnabled && !sessionWallet.connected)) return;
     const openMints = new Set(positions.filter((position) => position.status !== 'closed').map((position) => position.token.token.mint));
     const existingProposals = new Set(proposals.filter((proposal) => proposal.status === 'proposed_unsubmitted').map((proposal) => proposal.mint));
     const capacity = settings.maxPositions - openMints.size - existingProposals.size;
