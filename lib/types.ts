@@ -23,6 +23,29 @@ export interface CheckResult {
   metadata: Record<string, any>;
   executionTimeMs: number;
 }
+export type MomentumCheckStatus = 'pass' | 'warn' | 'skipped';
+export type MomentumCheckId = 'smart_money' | 'holder_velocity' | 'liquidity_health' | 'social_sentiment';
+export interface MomentumCheck {
+  id: MomentumCheckId;
+  name: string;
+  status: MomentumCheckStatus;
+  score: number;
+  evidence: EvidenceItem[];
+  metadata: Record<string, any>;
+  executionTimeMs: number;
+}
+export interface MomentumStrategyResult {
+  status: 'pass' | 'warn' | 'skipped';
+  triggered: boolean;
+  summary: string;
+  checks: {
+    smartMoney: MomentumCheck;
+    holderVelocity: MomentumCheck;
+    liquidityHealth: MomentumCheck;
+    socialSentiment: MomentumCheck;
+  };
+  executionTimeMs: number;
+}
 
 export interface HolderCluster {
   funder: string;
@@ -72,6 +95,8 @@ export interface TokenInfo {
   volume1hUsd?: number;
   txns5m?: { buys: number; sells: number };
   txns1h?: { buys: number; sells: number };
+  recentBuyers?: Array<{ address: string; timestamp: number }>;
+  uniqueWallets5m?: number;
   bondingCurveProgress?: number; // 0 - 100%
   mintAuthorityRevoked?: boolean;
   freezeAuthorityRevoked?: boolean;
@@ -117,6 +142,7 @@ export interface ScoredToken {
     gmgnBlocked?: boolean;
   };
   analyzedAt: string;
+  momentumStrategy?: MomentumStrategyResult;
 }
 
 export interface TokenFeedFilters {

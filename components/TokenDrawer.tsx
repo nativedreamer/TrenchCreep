@@ -44,7 +44,7 @@ export function TokenDrawer({
 
   if (!token) return null;
 
-  const { token: t, totalRiskScore, verdict, checks, holderClusters, sameSlotBuys } = token;
+  const { token: t, totalRiskScore, verdict, checks, holderClusters, sameSlotBuys, momentumStrategy } = token;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(t.mint);
@@ -510,6 +510,37 @@ export function TokenDrawer({
                   <p className="text-[11px] text-slate-400">
                     Aggregates DexScreener boosts, RugCheck signals, and GMGN smart money consensus.
                   </p>
+                </div>
+
+                {/* COMPLEMENTARY STRATEGY: runs only after all baseline checks pass */}
+                <div className="p-3 rounded-xl bg-[#11152a] border border-indigo-500/40 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-indigo-200 text-xs">Upgrade: Momentum Validations</span>
+                    <span className={`font-mono font-bold text-[10px] px-2 py-0.5 rounded ${
+                      momentumStrategy?.status === 'warn'
+                        ? 'bg-amber-500/20 text-amber-300'
+                        : momentumStrategy?.status === 'pass'
+                          ? 'bg-emerald-500/20 text-emerald-300'
+                          : 'bg-slate-500/20 text-slate-300'
+                    }`}>
+                      {momentumStrategy?.status?.toUpperCase() || 'NOT RUN'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    Runs only when all four baseline checks pass. It is complementary and never changes the base risk score.
+                  </p>
+                  {momentumStrategy && (
+                    <div className="space-y-1 text-[10px] text-slate-300">
+                      {[momentumStrategy.checks.smartMoney, momentumStrategy.checks.holderVelocity, momentumStrategy.checks.liquidityHealth, momentumStrategy.checks.socialSentiment].map((check) => (
+                        <div key={check.id} className="flex items-start justify-between gap-2 border-t border-indigo-500/10 pt-1">
+                          <span>{check.name}</span>
+                          <span className={check.status === 'warn' ? 'text-amber-300' : check.status === 'pass' ? 'text-emerald-300' : 'text-slate-500'}>
+                            {check.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

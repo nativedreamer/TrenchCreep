@@ -3,6 +3,7 @@ import { executeFundingTraceCheck } from './fundingTrace.js';
 import { executeDeployerCheck } from './deployerCheck.js';
 import { executeSameSlotBuysCheck } from './sameSlotBuys.js';
 import { executeConfirmationLayerCheck } from './confirmationLayer.js';
+import { runMomentumValidation, skippedMomentumValidation } from './momentum.js';
 
 export const SCORING_WEIGHTS = {
   holderTrace: 0.35,
@@ -81,16 +82,24 @@ export async function auditAndScoreToken(
   };
 
   const { totalScore, verdict, summary } = calculateWeightedScore(checks);
+  const baselinePassed = verdict === 'Looks cleaner' && Object.values(checks).every((check) => check.status === 'pass');
+  const momentumStrategy = baselinePassed
+    ? await runMomentumValidation(token)
+    : skippedMomentumValidation('Skipped: the existing four-check baseline did not fully pass.');
+  const finalSummary = momentumStrategy.triggered
+    ? `${summary} ${momentumStrategy.summary}`
+    : summary;
 
   return {
     token,
     totalRiskScore: totalScore,
     verdict,
-    verdictSummary: summary,
+    verdictSummary: finalSummary,
     checks,
     holderClusters: traceRes.clusters,
     sameSlotBuys: sameSlotRes.sameSlotBuys,
     confirmationSources: confirmRes.sources,
     analyzedAt: new Date().toISOString(),
+    momentumStrategy,
   };
 }

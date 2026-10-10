@@ -107,6 +107,21 @@ Each check runs in parallel with a strict 4.5s timeout budget, returning `{ stat
 
 ---
 
+## 🚀 Complementary Momentum Validation Upgrade
+
+The momentum strategy is a **post-pass upgrade**. It runs **if and only if** all four baseline checks return `status: 'pass'` and the base verdict is `Looks cleaner`. If the baseline does not pass, the upgrade is recorded as `skipped`; none of its checks can soften the baseline result or change the weighted score.
+
+When eligible, it validates:
+
+1. **Smart Money / KOL inflows:** matches recent buyers against the local `SMART_MONEY_WALLETS` list and/or the `smart_money_wallets` KV cache. Two or more matching wallets entering within five minutes of launch triggers a warning.
+2. **Holder velocity vs. wash-trading:** compares five-minute transaction activity with unique-wallet growth. High activity with fewer than 10 new wallets per minute is flagged as possible wash-trading.
+3. **Liquidity health ratio:** checks that `liquidityUsd / marketCapUsd` is between 15% and 40%.
+4. **Social sentiment:** optionally calls `SOCIAL_SENTIMENT_API_URL` with the ticker and mint. A response reporting more than 70% of mentions from accounts created within 30 days triggers a warning. The adapter accepts `newAccountPct` / `new_account_pct` and `totalMentions` / `total_mentions`.
+
+Each validation returns `pass`, `warn`, or `skipped` evidence in `momentumStrategy`. Missing optional data is reported as `skipped`, never treated as a clean signal. The frontend labels this block **Upgrade: Momentum Validations** in the token audit drawer.
+
+---
+
 ## 📊 Scoring System & Plain-Language Verdicts
 
 The total risk score is calculated via the weighted formula:
