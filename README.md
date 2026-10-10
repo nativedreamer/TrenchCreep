@@ -21,7 +21,7 @@ TrenchCreep operates as a serverless pipeline optimized for the Vercel Edge/Serv
                   ┌────────────────────────────────────────┐
                   │       VERCEL KV / UPSTASH REDIS        │
                   │   • Seen mints deduplication           │
-                  │   • 30-60s cached audit snapshots      │
+        │   • 5s cached audit snapshots           │
                   └──────────────────┬─────────────────────┘
                                      │
                                      ▼
@@ -44,7 +44,7 @@ TrenchCreep operates as a serverless pipeline optimized for the Vercel Edge/Serv
                                      ▼
         ┌────────────────────────────────────────────────────────┐
         │              NEXT.JS APP ROUTER FRONTEND               │
-        │   • Dashboard: Real-time feed with 30s auto-polling    │
+        │   • Dashboard: Real-time feed with 5s auto-polling     │
         │   • Filters: Min Score, Hide Fails, Trending, Migrated │
         │   • Token Audit Page: Cluster graph & evidence breakdown│
         │   • Manual Mint Search: On-demand audit pipeline       │

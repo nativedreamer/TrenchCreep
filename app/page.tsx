@@ -260,11 +260,13 @@ const SEED_TOKENS: ScoredToken[] = [
   },
 ];
 
+const FEED_REFRESH_SECONDS = 5;
+
 export default function DashboardPage() {
   const [tokens, setTokens] = useState<ScoredToken[]>(SEED_TOKENS);
   const [selectedToken, setSelectedToken] = useState<ScoredToken | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [refreshCountdown, setRefreshCountdown] = useState<number>(30);
+  const [refreshCountdown, setRefreshCountdown] = useState<number>(FEED_REFRESH_SECONDS);
   const [activeFilter, setActiveFilter] = useState<FilterPill>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
@@ -341,11 +343,11 @@ export default function DashboardPage() {
       console.warn('[Dashboard] Feed fetch error:', err);
     } finally {
       setLoading(false);
-      setRefreshCountdown(30);
+      setRefreshCountdown(FEED_REFRESH_SECONDS);
     }
   };
 
-  // Countdown timer for 30s auto-polling
+  // Countdown timer for five-second auto-polling
   useEffect(() => {
     fetchFeed();
 
@@ -353,7 +355,7 @@ export default function DashboardPage() {
       setRefreshCountdown((prev) => {
         if (prev <= 1) {
           fetchFeed();
-          return 30;
+          return FEED_REFRESH_SECONDS;
         }
         return prev - 1;
       });

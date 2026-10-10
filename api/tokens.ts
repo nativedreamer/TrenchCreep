@@ -64,7 +64,7 @@ export default async function handler(req: any, res: any) {
 
       cachedFeed = scoredTokens;
       if (scoredTokens.length > 0) {
-        await kv.set(CACHE_KEY, scoredTokens, 30);
+        await kv.set(CACHE_KEY, scoredTokens, 5);
       }
     }
 

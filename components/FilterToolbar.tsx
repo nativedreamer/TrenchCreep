@@ -151,7 +151,7 @@ export function FilterToolbar({
             onClick={onManualRefresh}
             disabled={isRefreshing}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0b1020] hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 rounded-lg text-xs font-mono transition-colors cursor-pointer disabled:opacity-50"
-            title="Auto-refreshes every 30s. Click to refresh immediately."
+            title="Auto-refreshes every 5s. Click to refresh immediately."
           >
             <RefreshCw
               className={`w-3.5 h-3.5 text-indigo-400 ${isRefreshing ? 'animate-spin' : ''}`}
