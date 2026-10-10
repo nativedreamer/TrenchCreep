@@ -25,6 +25,8 @@ const DEFAULT_SETTINGS: AutoSniperSettings = {
   requireMomentumPass: false,
 };
 
+const SETTINGS_STORAGE_KEY = 'trenchcreep:auto-sniper-settings:v1';
+
 const EMPTY_WALLET: SessionWalletStatus = {
   mode: 'privy-embedded',
   connected: false,
@@ -41,6 +43,27 @@ export function useAutoSniper(tokens: ScoredToken[]) {
   const [dailyLossSol, setDailyLossSol] = useState(0);
   const [paperBalanceSol, setPaperBalanceSol] = useState(1);
   const [paperStartedAt, setPaperStartedAt] = useState<number | null>(null);
+
+  // Remember user controls locally, but never allow a stale saved value to
+  // re-enable the removed Momentum-pass gate.
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+      if (!saved) return;
+      const parsed = JSON.parse(saved) as Partial<AutoSniperSettings>;
+      setSettings((current) => ({ ...current, ...parsed, requireMomentumPass: false }));
+    } catch {
+      // Ignore unavailable or malformed browser storage.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ ...settings, requireMomentumPass: false }));
+    } catch {
+      // Ignore private-mode or unavailable browser storage.
+    }
+  }, [settings]);
 
   const momentumQualified = useMemo(() => tokens.filter((item) => {
     const { token, totalRiskScore, checks, momentumStrategy } = item;
