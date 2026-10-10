@@ -314,10 +314,18 @@ export default function DashboardPage() {
       const res = await fetch('/api/tokens');
       if (res.ok) {
         const data = await res.json();
-        if (data.tokens && data.tokens.length > 0) {
-          setTokens(data.tokens);
+        // Vercel's `api/tokens.ts` is the deployed backend. Accept its
+        // canonical `tokens` field and the legacy `data` alias so the UI
+        // cannot silently remain on demo seed data after a backend response.
+        const liveTokens: ScoredToken[] = Array.isArray(data.tokens)
+          ? data.tokens
+          : Array.isArray(data.data)
+            ? data.data
+            : [];
+        if (liveTokens.length > 0) {
+          setTokens(liveTokens);
           // Check if newly discovered token has high safe score
-          const topScore = Math.max(...data.tokens.map((t: ScoredToken) => t.totalRiskScore));
+          const topScore = Math.max(...liveTokens.map((t) => t.totalRiskScore));
           if (topScore >= 80 && topScore > prevBestScoreRef.current) {
             playAlertChime();
             showToast('Safe memecoin gem discovered!');

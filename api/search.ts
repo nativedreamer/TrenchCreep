@@ -19,7 +19,13 @@ export default async function handler(req: any, res: any) {
 
   try {
     const url = new URL(req.url, `https://${req.headers.host || 'localhost'}`);
-    const q = (url.searchParams.get('q') || '').trim();
+    const rawQuery = (url.searchParams.get('q') || '').trim();
+    // Accept the same pump.fun links advertised by the dashboard as well as a
+    // bare mint address or ticker/name.
+    const q = rawQuery
+      .replace(/^https?:\/\/(?:www\.)?pump\.fun\//i, '')
+      .replace(/[/?#].*$/, '')
+      .trim();
 
     if (!q) {
       return res.status(400).json({ success: false, error: 'Query parameter q is required' });
@@ -53,11 +59,17 @@ export default async function handler(req: any, res: any) {
       }
     } else {
       const queryResults = await dexScreenerSource.getNewTokens(20);
-      tokenInfo = queryResults.find((t) => t.symbol.toLowerCase() === q.toLowerCase()) || null;
+      const normalizedQuery = q.toLowerCase();
+      tokenInfo = queryResults.find(
+        (t) =>
+          t.symbol.toLowerCase() === normalizedQuery ||
+          t.name.toLowerCase() === normalizedQuery ||
+          t.name.toLowerCase().includes(normalizedQuery)
+      ) || null;
     }
 
     if (!tokenInfo) {
-      return res.status(404).json({ success: false, error: `No Solana token found for query "${q}"` });
+      return res.status(404).json({ success: false, error: `No Solana token found for query "${rawQuery}"` });
     }
 
     const scored = await auditAndScoreToken(tokenInfo, { checkTimeoutMs: 4000 });

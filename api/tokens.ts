@@ -88,6 +88,9 @@ export default async function handler(req: any, res: any) {
     return res.status(200).json({
       success: true,
       count: results.length,
+      // `index.html` mounts the Vite dashboard, whose feed contract is `tokens`.
+      // Keep `data` as a compatibility alias for older API consumers.
+      tokens: results,
       data: results,
       timestamp: new Date().toISOString(),
       fromCache: Boolean(cachedFeed && cachedFeed.length),
