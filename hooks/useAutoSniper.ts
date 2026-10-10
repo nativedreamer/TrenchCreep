@@ -22,7 +22,7 @@ const DEFAULT_SETTINGS: AutoSniperSettings = {
   maxPositions: 3,
   maxDailyLossSol: 0.23,
   maxAgeMinutes: 10,
-  requireMomentumPass: true,
+  requireMomentumPass: false,
 };
 
 const EMPTY_WALLET: SessionWalletStatus = {
