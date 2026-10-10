@@ -36,10 +36,17 @@ export const EXCLUDED_ACCOUNTS = new Set([
 ]);
 
 export class HeliusAdapter {
-  private apiKey = process.env.HELIUS_API_KEY || '';
-  private rpcUrl = this.apiKey
-    ? `https://mainnet.helius-rpc.com/?api-key=${this.apiKey}`
-    : 'https://api.mainnet-beta.solana.com';
+  private apiKey: string;
+  private rpcUrl: string;
+
+  constructor() {
+    const raw = (process.env.HELIUS_API_KEY || '').trim();
+    const urlMatch = raw.match(/[?&]api-key=([a-zA-Z0-9_-]+)/);
+    this.apiKey = urlMatch ? urlMatch[1] : raw;
+    this.rpcUrl = raw.startsWith('http')
+      ? raw
+      : (this.apiKey ? `https://mainnet.helius-rpc.com/?api-key=${this.apiKey}` : 'https://api.mainnet-beta.solana.com');
+  }
 
   private async rpcCall(method: string, params: any[]): Promise<any> {
     const controller = new AbortController();

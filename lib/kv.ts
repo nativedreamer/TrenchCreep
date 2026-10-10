@@ -52,8 +52,8 @@ class RestKVStorage implements StorageInterface {
   private fallback = new MemoryStorage();
 
   constructor(url: string, token: string) {
-    this.url = url.replace(/\/$/, '');
-    this.token = token;
+    this.url = (url || '').replace(/\/$/, '').trim();
+    this.token = (token || '').replace(/^["']|["']$/g, '').trim();
   }
 
   private async execute(command: string, ...args: any[]): Promise<any> {
