@@ -26,7 +26,7 @@ export async function executeSameSlotBuysCheck(
           setTimeout(() => reject(new Error('Creation slot timeout')), timeoutMs)
         ),
       ]).catch(() => ({}));
-      creationSlot = creation.slot;
+      creationSlot = (creation as any)?.slot;
     }
 
     if (!creationSlot) {

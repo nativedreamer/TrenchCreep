@@ -71,7 +71,7 @@ export default async function handler(req: any, res: any) {
     let results = cachedFeed || [];
 
     if (minScore > 0) {
-      results = results.filter((st) => st.totalScore >= minScore);
+      results = results.filter((st) => st.totalRiskScore >= minScore);
     }
     if (hideFailed) {
       results = results.filter((st) => st.verdict !== 'Avoid');
