@@ -47,10 +47,23 @@ export interface ControlPlanePosition {
   status: 'open' | 'proposed_exit' | 'closed';
 }
 
+export interface PaperTradeActivity {
+  id: string;
+  kind: 'buy' | 'sell';
+  mint: string;
+  symbol: string;
+  solAmount: number;
+  priceUsd: number;
+  pnlSol: number;
+  timestamp: number;
+  status: 'filled' | 'closed';
+}
+
 export interface AutoSniperSnapshot {
   settings: AutoSniperSettings;
   paperBalanceSol: number;
   paperStartedAt: number | null;
+  paperActivities: PaperTradeActivity[];
   sessionWallet: SessionWalletStatus;
   positions: ControlPlanePosition[];
   proposals: ProposedTransaction[];

@@ -131,6 +131,8 @@ The control plane:
 * Arms only **proposed** buys for tokens that pass the baseline checks, momentum strategy, age, authority, score, and liquidity guards.
 * Displays momentum-qualified tokens separately from the main screener.
 * Tracks local position/PnL state and prepares take-profit, stop-loss, and emergency-exit proposals.
+* Persists paper positions, balances, proposals, and activity history in browser local storage so closing the app does not close simulations.
+* Displays paper activity grouped by trading day and supports CSV download from the dashboard.
 * Uses Privy only for authentication and public embedded-wallet address display when `VITE_PRIVY_APP_ID` is configured; it never accepts, stores, derives, exports, or displays a private key or seed phrase.
 * Labels all transaction plans `proposed_unsubmitted`. No Jupiter, RPC write endpoint, DEX, wallet, or signing provider is called by this control plane.
 

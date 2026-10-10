@@ -24,6 +24,7 @@ import TokenDrawer from '@/components/TokenDrawer';
 import ConfidenceScoreBadge from '@/components/ConfidenceScoreBadge';
 import AutoSnipeSettingsPanel from '@/components/AutoSnipeSettingsPanel';
 import AutoSniperMonitor from '@/components/AutoSniperMonitor';
+import PaperTradeHistory from '@/components/PaperTradeHistory';
 import { useAutoSniper } from '@/hooks/useAutoSniper';
 
 // Initial fallback seeds so user experiences 0ms latency immediately
@@ -555,6 +556,7 @@ export default function DashboardPage() {
           showToast('Engine disabled; emergency exit proposals prepared locally.');
         }}
       />
+      <PaperTradeHistory activities={autoSniper.paperActivities} />
 
       {/* MAIN SCREENER WORKSPACE */}
       <main className="flex-1 flex flex-col w-full max-w-full overflow-hidden">

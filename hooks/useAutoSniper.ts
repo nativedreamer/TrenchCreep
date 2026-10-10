@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScoredToken } from '@/lib/types';
 import {
   AutoSniperSettings,
@@ -7,6 +7,7 @@ import {
   PriorityFeeStrategy,
   ProposedTransaction,
   SessionWalletStatus,
+  PaperTradeActivity,
 } from '@/lib/controlPlane';
 
 const DEFAULT_SETTINGS: AutoSniperSettings = {
@@ -26,6 +27,7 @@ const DEFAULT_SETTINGS: AutoSniperSettings = {
 };
 
 const SETTINGS_STORAGE_KEY = 'trenchcreep:auto-sniper-settings:v1';
+const PAPER_STATE_STORAGE_KEY = 'trenchcreep:paper-state:v1';
 
 const EMPTY_WALLET: SessionWalletStatus = {
   mode: 'privy-embedded',
@@ -43,6 +45,8 @@ export function useAutoSniper(tokens: ScoredToken[]) {
   const [dailyLossSol, setDailyLossSol] = useState(0);
   const [paperBalanceSol, setPaperBalanceSol] = useState(1);
   const [paperStartedAt, setPaperStartedAt] = useState<number | null>(null);
+  const [paperActivities, setPaperActivities] = useState<PaperTradeActivity[]>([]);
+  const paperHydratedRef = useRef(false);
 
   // Remember user controls locally, but never allow a stale saved value to
   // re-enable the removed Momentum-pass gate.
@@ -64,6 +68,48 @@ export function useAutoSniper(tokens: ScoredToken[]) {
       // Ignore private-mode or unavailable browser storage.
     }
   }, [settings]);
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(PAPER_STATE_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as Partial<{
+          positions: ControlPlanePosition[];
+          proposals: ProposedTransaction[];
+          dailyLossSol: number;
+          paperBalanceSol: number;
+          paperStartedAt: number | null;
+          paperActivities: PaperTradeActivity[];
+        }>;
+        if (Array.isArray(parsed.positions)) setPositions(parsed.positions);
+        if (Array.isArray(parsed.proposals)) setProposals(parsed.proposals);
+        if (typeof parsed.dailyLossSol === 'number') setDailyLossSol(parsed.dailyLossSol);
+        if (typeof parsed.paperBalanceSol === 'number') setPaperBalanceSol(parsed.paperBalanceSol);
+        if (typeof parsed.paperStartedAt === 'number' || parsed.paperStartedAt === null) setPaperStartedAt(parsed.paperStartedAt);
+        if (Array.isArray(parsed.paperActivities)) setPaperActivities(parsed.paperActivities);
+      }
+    } catch {
+      // Ignore unavailable or malformed browser storage.
+    } finally {
+      paperHydratedRef.current = true;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!paperHydratedRef.current) return;
+    try {
+      window.localStorage.setItem(PAPER_STATE_STORAGE_KEY, JSON.stringify({
+        positions,
+        proposals,
+        dailyLossSol,
+        paperBalanceSol,
+        paperStartedAt,
+        paperActivities,
+      }));
+    } catch {
+      // Ignore private-mode or unavailable browser storage.
+    }
+  }, [positions, proposals, dailyLossSol, paperBalanceSol, paperStartedAt, paperActivities]);
 
   const momentumQualified = useMemo(() => tokens.filter((item) => {
     const { token, totalRiskScore, checks, momentumStrategy } = item;
@@ -119,6 +165,17 @@ export function useAutoSniper(tokens: ScoredToken[]) {
         if (paperBalanceSol < settings.maxBuySol || current.filter((position) => position.status !== 'closed').length >= settings.maxPositions) return current;
         if (!paperStartedAt) setPaperStartedAt(Date.now());
         setPaperBalanceSol((balance) => Math.max(0, balance - settings.maxBuySol));
+        setPaperActivities((activities) => [{
+          id: `paper-buy-${token.token.mint}-${Date.now()}`,
+          kind: 'buy' as const,
+          mint: token.token.mint,
+          symbol: token.token.symbol,
+          solAmount: settings.maxBuySol,
+          priceUsd: entryPriceUsd,
+          pnlSol: 0,
+          timestamp: Date.now(),
+          status: 'filled' as const,
+        }, ...activities].slice(0, 500));
         return [{
           id: `paper-${token.token.mint}-${Date.now()}`,
           token,
@@ -150,6 +207,17 @@ export function useAutoSniper(tokens: ScoredToken[]) {
       const pnlSol = position.solInvested * (multiple - 1);
       setPaperBalanceSol((balance) => balance + position.solInvested + pnlSol);
       if (pnlSol < 0) setDailyLossSol((loss) => loss + Math.abs(pnlSol));
+      setPaperActivities((activities) => [{
+        id: `paper-sell-${position.id}-${Date.now()}`,
+        kind: 'sell' as const,
+        mint: position.token.token.mint,
+        symbol: position.token.token.symbol,
+        solAmount: position.solInvested,
+        priceUsd: position.currentPriceUsd,
+        pnlSol,
+        timestamp: Date.now(),
+        status: 'closed' as const,
+      }, ...activities].slice(0, 500));
       setPositions((current) => current.map((item) => item.id === position.id ? { ...item, status: 'closed' } : item));
     } else {
       setPositions((current) => current.map((item) => item.id === position.id ? { ...item, status: 'proposed_exit' } : item));
@@ -208,7 +276,7 @@ export function useAutoSniper(tokens: ScoredToken[]) {
     return () => clearInterval(interval);
   }, [positions, settings.takeProfitMultiplier, settings.secondTakeProfitMultiplier, settings.stopLossPct, proposeExit]);
 
-  const snapshot: AutoSniperSnapshot = { settings, sessionWallet, positions, proposals, momentumQualified, dailyLossSol, paperBalanceSol, paperStartedAt };
+  const snapshot: AutoSniperSnapshot = { settings, sessionWallet, positions, proposals, momentumQualified, dailyLossSol, paperBalanceSol, paperStartedAt, paperActivities };
   return {
     ...snapshot,
     updateSettings,
@@ -228,6 +296,7 @@ export function useAutoSniper(tokens: ScoredToken[]) {
       setPaperStartedAt(Date.now());
       setPositions([]);
       setProposals([]);
+      setPaperActivities([]);
     },
   };
 }
