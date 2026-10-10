@@ -13,6 +13,7 @@ const DEFAULT_SETTINGS: AutoSniperSettings = {
   enabled: false,
   maxBuySol: 0.05,
   takeProfitMultiplier: 1.5,
+  secondTakeProfitMultiplier: 2,
   maxSlippagePct: 15,
   stopLossPct: 20,
   minConfidenceScore: 85,
@@ -24,7 +25,7 @@ const DEFAULT_SETTINGS: AutoSniperSettings = {
 };
 
 const EMPTY_WALLET: SessionWalletStatus = {
-  mode: 'external-signer',
+  mode: 'privy-embedded',
   connected: false,
   address: null,
   balanceSol: 0,
@@ -63,7 +64,7 @@ export function useAutoSniper(tokens: ScoredToken[]) {
 
   const connectExternalSigner = useCallback((address: string, balanceSol = 0) => {
     setSessionWallet({
-      mode: 'external-signer',
+      mode: 'privy-embedded',
       connected: true,
       address,
       balanceSol,
@@ -131,8 +132,10 @@ export function useAutoSniper(tokens: ScoredToken[]) {
         if (position.status !== 'open') return position;
         const currentPriceUsd = position.token.token.priceUsd || position.currentPriceUsd;
         const multiple = currentPriceUsd / position.entryPriceUsd;
-        if (multiple >= settings.takeProfitMultiplier) {
-          proposeExit(position, `Take-profit threshold reached at ${multiple.toFixed(2)}x.`);
+        if (multiple >= settings.secondTakeProfitMultiplier) {
+          proposeExit(position, `Take-profit target 2.0x reached at ${multiple.toFixed(2)}x.`);
+        } else if (multiple >= settings.takeProfitMultiplier) {
+          proposeExit(position, `Take-profit target 1.5x reached at ${multiple.toFixed(2)}x.`);
         } else if (multiple <= 1 - (settings.stopLossPct / 100)) {
           proposeExit(position, `Stop-loss threshold reached at ${(multiple * 100 - 100).toFixed(1)}%.`);
         }
@@ -140,7 +143,7 @@ export function useAutoSniper(tokens: ScoredToken[]) {
       }));
     }, 5000);
     return () => clearInterval(interval);
-  }, [positions, settings.takeProfitMultiplier, settings.stopLossPct, proposeExit]);
+  }, [positions, settings.takeProfitMultiplier, settings.secondTakeProfitMultiplier, settings.stopLossPct, proposeExit]);
 
   const snapshot: AutoSniperSnapshot = { settings, sessionWallet, positions, proposals, momentumQualified, dailyLossSol };
   return {

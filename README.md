@@ -124,17 +124,17 @@ Each validation returns `pass`, `warn`, or `skipped` evidence in `momentumStrate
 
 ## 🧭 Auto-Snipe Control Plane (Proposal-Only)
 
-The dashboard includes a low-balance-friendly control plane for reviewing automated execution ideas without custody or transaction submission. It is configured with the requested defaults: maximum buy `0.05 SOL`, take profit `1.5x`, stop loss `-20%`, maximum slippage `15%`, minimum score `85`, maximum `3` positions, and maximum daily loss `0.23 SOL`.
+The dashboard includes a low-balance-friendly control plane for reviewing automated execution ideas without custody or transaction submission. It is configured with the requested defaults: maximum buy `0.05 SOL`, take-profit targets `1.5x` and `2.0x`, stop loss `-20%`, maximum slippage `15%`, minimum score `85`, maximum `3` positions, and maximum daily loss `0.23 SOL`.
 
 The control plane:
 
 * Arms only **proposed** buys for tokens that pass the baseline checks, momentum strategy, age, authority, score, and liquidity guards.
 * Displays momentum-qualified tokens separately from the main screener.
 * Tracks local position/PnL state and prepares take-profit, stop-loss, and emergency-exit proposals.
-* Accepts only an external signer public address in the UI; it never accepts, stores, derives, or displays a private key or seed phrase.
+* Uses Privy only for authentication and public embedded-wallet address display when `VITE_PRIVY_APP_ID` is configured; it never accepts, stores, derives, exports, or displays a private key or seed phrase.
 * Labels all transaction plans `proposed_unsubmitted`. No Jupiter, RPC write endpoint, DEX, wallet, or signing provider is called by this control plane.
 
-The relevant implementation is `hooks/useAutoSniper.ts`, `components/AutoSnipeSettingsPanel.tsx`, `components/AutoSniperMonitor.tsx`, and `lib/controlPlane.ts`. Any independently operated signer must review and submit proposals outside this repository.
+The relevant implementation is `components/PrivyProvider.tsx`, `components/PrivySessionButton.tsx`, `hooks/useAutoSniper.ts`, `components/AutoSnipeSettingsPanel.tsx`, `components/AutoSniperMonitor.tsx`, `lib/controlPlane.ts`, and `lib/proposalExecution.ts`. Any independently operated signer must review and submit proposals outside this repository.
 
 ---
 
@@ -169,7 +169,12 @@ GMGN_ENABLED=false
 
 # Optional Vercel Cron Security Token (leave blank)
 CRON_SECRET=
+
+# Browser-safe Privy application identifier for authentication-only wallet display
+VITE_PRIVY_APP_ID=your_privy_app_id_here
 ```
+
+Do not add a private key, seed phrase, or signer secret to `.env.local`, `.env`, or any repository file. The control plane is proposal-only and does not sign or broadcast transactions.
 
 > **Note:** If `KV_REST_API_URL` is omitted, TrenchCreep automatically falls back to high-performance in-memory caching during local development.
 

@@ -6,6 +6,7 @@ export interface AutoSniperSettings {
   enabled: boolean;
   maxBuySol: number;
   takeProfitMultiplier: number;
+  secondTakeProfitMultiplier: number;
   maxSlippagePct: number;
   stopLossPct: number;
   minConfidenceScore: number;
@@ -17,7 +18,7 @@ export interface AutoSniperSettings {
 }
 
 export interface SessionWalletStatus {
-  mode: 'external-signer';
+  mode: 'privy-embedded' | 'external-signer';
   connected: boolean;
   address: string | null;
   balanceSol: number;
