@@ -136,8 +136,8 @@ KV_REST_API_TOKEN=your_upstash_rest_token
 # Multi-Layer Confirmation Adapters
 GMGN_ENABLED=false
 
-# Optional Vercel Cron Security Token
-CRON_SECRET=your_random_secret_token
+# Optional Vercel Cron Security Token (leave blank)
+CRON_SECRET=
 ```
 
 > **Note:** If `KV_REST_API_URL` is omitted, TrenchCreep automatically falls back to high-performance in-memory caching during local development.
