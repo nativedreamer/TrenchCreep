@@ -22,6 +22,9 @@ import FilterToolbar, { FilterPill } from '@/components/FilterToolbar';
 import ScreenerTable from '@/components/ScreenerTable';
 import TokenDrawer from '@/components/TokenDrawer';
 import ConfidenceScoreBadge from '@/components/ConfidenceScoreBadge';
+import AutoSnipeSettingsPanel from '@/components/AutoSnipeSettingsPanel';
+import AutoSniperMonitor from '@/components/AutoSniperMonitor';
+import { useAutoSniper } from '@/hooks/useAutoSniper';
 
 // Initial fallback seeds so user experiences 0ms latency immediately
 const SEED_TOKENS: ScoredToken[] = [
@@ -272,6 +275,7 @@ export default function DashboardPage() {
   const [auditInputCa, setAuditInputCa] = useState<string>('');
   const [auditLoading, setAuditLoading] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const autoSniper = useAutoSniper(tokens);
 
   const prevBestScoreRef = useRef<number>(88);
 
@@ -481,6 +485,11 @@ export default function DashboardPage() {
     return true;
   });
 
+  const handleProposeBuy = (item: ScoredToken) => {
+    autoSniper.proposeBuy(item);
+    showToast(`Unsigned buy proposal prepared for $${item.token.symbol}.`);
+  };
+
   return (
     <div className="min-h-screen bg-[#05070d] text-slate-100 flex flex-col font-sans select-none antialiased">
       {/* FLOATING TOAST NOTIFICATION */}
@@ -521,6 +530,26 @@ export default function DashboardPage() {
         onToggleSound={() => setSoundEnabled((prev) => !prev)}
         totalTokensCount={tokens.length}
         filteredCount={filteredTokens.length}
+      />
+
+      <AutoSnipeSettingsPanel
+        settings={autoSniper.settings}
+        wallet={autoSniper.sessionWallet}
+        onUpdate={autoSniper.updateSettings}
+        onConnect={autoSniper.connectExternalSigner}
+        onDisconnect={autoSniper.disconnectExternalSigner}
+      />
+      <AutoSniperMonitor
+        qualified={autoSniper.momentumQualified}
+        positions={autoSniper.positions}
+        proposals={autoSniper.proposals}
+        dailyLossSol={autoSniper.dailyLossSol}
+        maxDailyLossSol={autoSniper.settings.maxDailyLossSol}
+        onProposeBuy={handleProposeBuy}
+        onPanic={() => {
+          autoSniper.panicSellAll();
+          showToast('Engine disabled; emergency exit proposals prepared locally.');
+        }}
       />
 
       {/* MAIN SCREENER WORKSPACE */}
